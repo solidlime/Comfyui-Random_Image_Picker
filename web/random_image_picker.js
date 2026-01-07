@@ -1,5 +1,4 @@
 import { app } from "../../scripts/app.js";
-import { ComfyWidgets } from "../../scripts/widgets.js";
 
 app.registerExtension({
     name: "Comfy.RandomImagePicker",
@@ -9,14 +8,11 @@ app.registerExtension({
             const onNodeCreated = nodeType.prototype.onNodeCreated;
             
             nodeType.prototype.onNodeCreated = function () {
-                const ret = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
+                const result = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
+                const node = this;
                 
-                // Find the image widget
-                const imageWidget = this.widgets.find(w => w.name === "image");
-                if (!imageWidget) return ret;
-                
-                // Create file input button widget
-                const fileWidget = this.addWidget("button", "📁 Choose File", "file", () => {
+                // Add browse button
+                node.addWidget("button", "📁 Choose File", null, () => {
                     const input = document.createElement("input");
                     input.type = "file";
                     input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/bmp,image/gif";
@@ -24,39 +20,21 @@ app.registerExtension({
                     input.onchange = (e) => {
                         if (e.target.files && e.target.files[0]) {
                             const file = e.target.files[0];
+                            const imageWidget = node.widgets.find(w => w.name === "image");
                             
-                            // Create a URL for the file
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                                // Get file path (name only, browser security limitation)
-                                const fileName = file.name;
-                                
-                                // Try to use the webkitRelativePath or fall back to name
-                                const filePath = file.webkitRelativePath || file.path || fileName;
-                                
-                                // Update the image widget value
-                                imageWidget.value = filePath;
-                                
-                                console.log("Selected file:", filePath);
-                                
-                                // Show notification
-                                app.ui.dialog.show(`File selected: ${fileName}\n\nNote: You may need to enter the full path manually due to browser security restrictions.`);
-                            };
-                            reader.readAsDataURL(file);
+                            if (imageWidget) {
+                                // Update with file name (user needs to provide full path)
+                                imageWidget.value = file.name;
+                                console.log("Selected file:", file.name);
+                                alert(`File selected: ${file.name}\n\nPlease enter the full path to this file in the text field above.`);
+                            }
                         }
                     };
                     
                     input.click();
                 });
                 
-                // Add info widget
-                const infoWidget = this.addWidget("text", "ℹ️ Info", 
-                    "Single mode: Select any image file\nFolder mode: File's folder will be used", 
-                    () => {}, 
-                    { serialize: false }
-                );
-                
-                return ret;
+                return result;
             };
         }
     }
