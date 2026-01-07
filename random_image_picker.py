@@ -28,10 +28,9 @@ class RandomImagePicker:
         
         return {
             "required": {
-                "path": ("STRING", {
+                "image": ("STRING", {
                     "default": default_path, 
                     "multiline": False,
-                    "placeholder": "Path to image file or folder"
                 }),
                 "folder_mode": ("BOOLEAN", {
                     "default": False, 
@@ -56,6 +55,7 @@ class RandomImagePicker:
     FUNCTION = "load_image"
     CATEGORY = "image"
     OUTPUT_NODE = True
+    OUTPUT_IS_LIST = (False, False, False)
     
     @staticmethod
     def get_image_files(directory: str, include_subfolders: bool = False) -> List[str]:
@@ -114,12 +114,12 @@ class RandomImagePicker:
         
         return img_tensor, width, height
     
-    def load_image(self, path: str, folder_mode: bool, include_subfolders: bool, seed: int):
+    def load_image(self, image: str, folder_mode: bool, include_subfolders: bool, seed: int):
         """
         Load image based on mode settings.
         
         Args:
-            path: File or folder path
+            image: File path (single mode) or file path to extract folder from (folder mode)
             folder_mode: True for folder mode, False for single file mode
             include_subfolders: Whether to scan subfolders
             seed: Random seed for folder mode
@@ -127,31 +127,39 @@ class RandomImagePicker:
         Returns:
             Tuple of (image_tensor, width, height)
         """
-        if not path or not os.path.exists(path):
-            raise ValueError(f"Path does not exist: {path}")
+        if not image or not os.path.exists(image):
+            raise ValueError(f"Path does not exist: {image}")
         
         if folder_mode:
-            # Folder mode: pick random image
-            if not os.path.isdir(path):
-                raise ValueError(f"Folder mode enabled but path is not a directory: {path}")
+            # Folder mode: extract folder from file path and pick random image
+            if os.path.isfile(image):
+                # Extract folder path from file path
+                folder_path = os.path.dirname(image)
+            elif os.path.isdir(image):
+                # Direct folder path
+                folder_path = image
+            else:
+                raise ValueError(f"Invalid path: {image}")
             
-            image_files = self.get_image_files(path, include_subfolders)
+            image_files = self.get_image_files(folder_path, include_subfolders)
             
             if not image_files:
-                raise ValueError(f"No image files found in directory: {path}")
+                raise ValueError(f"No image files found in directory: {folder_path}")
             
             # Use seed for reproducible random selection
             random.seed(seed)
             selected_image = random.choice(image_files)
             
+            print(f"[Random Image Picker] Folder: {folder_path}")
             print(f"[Random Image Picker] Selected: {selected_image}")
             return self.load_image_file(selected_image)
         else:
             # Single file mode
-            if not os.path.isfile(path):
-                raise ValueError(f"Single file mode enabled but path is not a file: {path}")
+            if not os.path.isfile(image):
+                raise ValueError(f"Single file mode enabled but path is not a file: {image}")
             
-            return self.load_image_file(path)
+            print(f"[Random Image Picker] Loading: {image}")
+            return self.load_image_file(image)
 
 
 # Node registration

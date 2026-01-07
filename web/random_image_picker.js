@@ -1,4 +1,5 @@
 import { app } from "../../scripts/app.js";
+import { ComfyWidgets } from "../../scripts/widgets.js";
 
 app.registerExtension({
     name: "Comfy.RandomImagePicker",
@@ -8,63 +9,54 @@ app.registerExtension({
             const onNodeCreated = nodeType.prototype.onNodeCreated;
             
             nodeType.prototype.onNodeCreated = function () {
-                const result = onNodeCreated?.apply(this, arguments);
+                const ret = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
                 
-                // Add file browser button
-                const pathWidget = this.widgets.find(w => w.name === "path");
-                if (pathWidget) {
-                    // Add button to open file dialog
-                    const button = this.addWidget("button", "Browse...", null, () => {
-                        // Create file input element
-                        const input = document.createElement("input");
-                        
-                        // Get folder_mode widget value
-                        const folderModeWidget = this.widgets.find(w => w.name === "folder_mode");
-                        const isFolderMode = folderModeWidget?.value || false;
-                        
-                        if (isFolderMode) {
-                            // Folder selection
-                            input.type = "file";
-                            input.webkitdirectory = true;
-                            input.directory = true;
-                        } else {
-                            // File selection
-                            input.type = "file";
-                            input.accept = "image/png, image/jpeg, image/webp, image/bmp, image/gif";
-                        }
-                        
-                        input.onchange = (e) => {
-                            if (e.target.files && e.target.files[0]) {
-                                if (isFolderMode) {
-                                    // Get folder path from first file
-                                    const firstFile = e.target.files[0];
-                                    const fullPath = firstFile.webkitRelativePath || firstFile.name;
-                                    const folderPath = fullPath.split('/')[0];
-                                    pathWidget.value = folderPath;
-                                } else {
-                                    // Get file path
-                                    const file = e.target.files[0];
-                                    // Note: For security reasons, browsers don't expose full file paths
-                                    // We can only get the file name, not the full path
-                                    // Users will need to manually enter the full path or use relative paths
-                                    pathWidget.value = file.name;
-                                    
-                                    // Show info message
-                                    console.log("Note: Due to browser security, full path is not available. Please enter the complete path manually.");
-                                }
-                            }
-                        };
-                        
-                        input.click();
-                    });
+                // Find the image widget
+                const imageWidget = this.widgets.find(w => w.name === "image");
+                if (!imageWidget) return ret;
+                
+                // Create file input button widget
+                const fileWidget = this.addWidget("button", "📁 Choose File", "file", () => {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/bmp,image/gif";
                     
-                    // Add helper text
-                    this.addWidget("text", "helper", "Tip: Enter full path or use ComfyUI input folder", () => {}, {
-                        serialize: false
-                    });
-                }
+                    input.onchange = (e) => {
+                        if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            
+                            // Create a URL for the file
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                // Get file path (name only, browser security limitation)
+                                const fileName = file.name;
+                                
+                                // Try to use the webkitRelativePath or fall back to name
+                                const filePath = file.webkitRelativePath || file.path || fileName;
+                                
+                                // Update the image widget value
+                                imageWidget.value = filePath;
+                                
+                                console.log("Selected file:", filePath);
+                                
+                                // Show notification
+                                app.ui.dialog.show(`File selected: ${fileName}\n\nNote: You may need to enter the full path manually due to browser security restrictions.`);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                    
+                    input.click();
+                });
                 
-                return result;
+                // Add info widget
+                const infoWidget = this.addWidget("text", "ℹ️ Info", 
+                    "Single mode: Select any image file\nFolder mode: File's folder will be used", 
+                    () => {}, 
+                    { serialize: false }
+                );
+                
+                return ret;
             };
         }
     }
