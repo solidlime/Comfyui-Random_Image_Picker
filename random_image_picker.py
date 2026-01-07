@@ -10,13 +10,20 @@ import folder_paths
 from PIL import Image
 import numpy as np
 import torch
+from nodes import SaveImage
 
 
-class RandomImagePicker:
+class RandomImagePicker(SaveImage):
     """
     ComfyUI node that loads either a single image or a random image from a folder.
     Supports subfolder scanning and outputs image with resolution information.
     """
+    
+    def __init__(self):
+        self.output_dir = folder_paths.get_temp_directory()
+        self.type = "temp"
+        self.prefix_append = "_temp_" + ''.join(random.choice("abcdefghijklmnopqrstupvxyz") for x in range(5))
+        self.compress_level = 4
     
     @classmethod
     def INPUT_TYPES(cls):
@@ -161,8 +168,8 @@ class RandomImagePicker:
             img_tensor, width, height = self.load_image_file(selected_image)
             print(f"[Random Image Picker] Resolution: {width}x{height}")
             
-            # Return just the image tensor
-            return (img_tensor,)
+            # Save and return for preview
+            return self.save_images(img_tensor, filename_prefix=f"RandomPicker")
         else:
             # Single file mode: use file picker (image_data)
             if not image_data:
@@ -199,8 +206,8 @@ class RandomImagePicker:
                 print(f"[Random Image Picker] Mode: Single (File Picker)")
                 print(f"[Random Image Picker] Resolution: {width}x{height}")
                 
-                # Return just the image tensor
-                return (img_tensor,)
+                # Save and return for preview
+                return self.save_images(img_tensor, filename_prefix=f"RandomPicker")
                 
             except Exception as e:
                 raise ValueError(f"Failed to load image from file picker: {str(e)}")
