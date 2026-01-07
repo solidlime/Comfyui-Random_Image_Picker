@@ -64,12 +64,7 @@ class RandomImagePicker:
     RETURN_NAMES = ("image",)
     FUNCTION = "load_image"
     CATEGORY = "image"
-    OUTPUT_NODE = True = ("IMAGE", "INT", "INT")
-    RETURN_NAMES = ("IMAGE", "width", "height")
-    FUNCTION = "load_image"
-    CATEGORY = "image"
     OUTPUT_NODE = True
-    OUTPUT_IS_LIST = (False, False, False)
     
     @staticmethod
     def get_image_files(directory: str, include_subfolders: bool = False) -> List[str]:
