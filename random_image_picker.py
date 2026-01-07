@@ -135,7 +135,7 @@ class RandomImagePicker:
             image_data: Base64 encoded image data from file picker (used when folder_mode=False)
             
         Returns:
-            Tuple of (image_tensor,) with UI info
+            Tuple of (image_tensor,)
         """
         if folder_mode:
             # Folder mode: random selection from folder_path
@@ -159,12 +159,10 @@ class RandomImagePicker:
             print(f"[Random Image Picker] Selected: {selected_image}")
             
             img_tensor, width, height = self.load_image_file(selected_image)
+            print(f"[Random Image Picker] Resolution: {width}x{height}")
             
-            # Return with UI info
-            return {
-                "ui": {"text": [f"📁 Folder Mode | Resolution: {width}x{height} | File: {os.path.basename(selected_image)}"]},
-                "result": (img_tensor,)
-            }
+            # Return just the image tensor
+            return (img_tensor,)
         else:
             # Single file mode: use file picker (image_data)
             if not image_data:
@@ -199,13 +197,10 @@ class RandomImagePicker:
                 img_tensor = torch.from_numpy(img_array)[None,]
                 
                 print(f"[Random Image Picker] Mode: Single (File Picker)")
-                print(f"[Random Image Picker] Loaded: {width}x{height}")
+                print(f"[Random Image Picker] Resolution: {width}x{height}")
                 
-                # Return with UI info
-                return {
-                    "ui": {"text": [f"📄 Single Mode | Resolution: {width}x{height}"]},
-                    "result": (img_tensor,)
-                }
+                # Return just the image tensor
+                return (img_tensor,)
                 
             except Exception as e:
                 raise ValueError(f"Failed to load image from file picker: {str(e)}")
