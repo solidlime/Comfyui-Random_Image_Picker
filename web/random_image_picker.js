@@ -11,6 +11,13 @@ app.registerExtension({
                 const result = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
                 const node = this;
                 
+                // Hide image_data widget (it's auto-filled by file picker)
+                const imageDataWidget = node.widgets.find(w => w.name === "image_data");
+                if (imageDataWidget) {
+                    imageDataWidget.type = "converted-widget";
+                    imageDataWidget.computeSize = () => [0, -4]; // Hide it
+                }
+                
                 // Add file picker button
                 node.addWidget("button", "📁 Choose File", null, () => {
                     const input = document.createElement("input");
