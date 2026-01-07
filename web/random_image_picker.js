@@ -11,12 +11,16 @@ app.registerExtension({
                 const result = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
                 const node = this;
                 
-                // Hide image_data widget (it's auto-filled by file picker)
-                const imageDataWidget = node.widgets.find(w => w.name === "image_data");
-                if (imageDataWidget) {
-                    imageDataWidget.type = "converted-widget";
-                    imageDataWidget.computeSize = () => [0, -4]; // Hide it
-                }
+                // Completely hide image_data widget
+                setTimeout(() => {
+                    const imageDataWidget = node.widgets.find(w => w.name === "image_data");
+                    if (imageDataWidget) {
+                        imageDataWidget.type = "converted-widget";
+                        imageDataWidget.hidden = true;
+                        imageDataWidget.computeSize = () => [0, -4];
+                        imageDataWidget.serializeValue = () => imageDataWidget.value;
+                    }
+                }, 10);
                 
                 // Add file picker button
                 node.addWidget("button", "📁 Choose File", null, () => {
@@ -39,17 +43,20 @@ app.registerExtension({
                             reader.onload = (event) => {
                                 const base64Data = event.target.result;
                                 
-                                // Store image_data in node properties
-                                if (!node.properties) {
-                                    node.properties = {};
-                                }
-                                node.properties.image_data = base64Data;
-                                
-                                // Also try to set widget if it exists
+                                // Store image_data in widget
                                 let imageDataWidget = node.widgets.find(w => w.name === "image_data");
                                 if (imageDataWidget) {
                                     imageDataWidget.value = base64Data;
                                 }
+                                
+                                // Show instant preview
+                                const img = new Image();
+                                img.onload = () => {
+                                    node.imgs = [img];
+                                    node.setSizeForImage?.();
+                                    app.graph.setDirtyCanvas(true);
+                                };
+                                img.src = base64Data;
                             };
                             
                             reader.readAsDataURL(file);
