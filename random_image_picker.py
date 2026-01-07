@@ -142,7 +142,7 @@ class RandomImagePicker(SaveImage):
             image_data: Base64 encoded image data from file picker (used when folder_mode=False)
             
         Returns:
-            Tuple of (image_tensor,)
+            Dict with ui (for preview) and result (IMAGE tensor)
         """
         if folder_mode:
             # Folder mode: random selection from folder_path
@@ -168,8 +168,9 @@ class RandomImagePicker(SaveImage):
             img_tensor, width, height = self.load_image_file(selected_image)
             print(f"[Random Image Picker] Resolution: {width}x{height}")
             
-            # Save and return for preview
-            return self.save_images(img_tensor, filename_prefix=f"RandomPicker")
+            # Save for preview and return with image tensor
+            preview = self.save_images(img_tensor, filename_prefix="RandomPicker")
+            return {"ui": preview["ui"], "result": (img_tensor,)}
         else:
             # Single file mode: use file picker (image_data)
             if not image_data:
@@ -206,8 +207,9 @@ class RandomImagePicker(SaveImage):
                 print(f"[Random Image Picker] Mode: Single (File Picker)")
                 print(f"[Random Image Picker] Resolution: {width}x{height}")
                 
-                # Save and return for preview
-                return self.save_images(img_tensor, filename_prefix=f"RandomPicker")
+                # Save for preview and return with image tensor
+                preview = self.save_images(img_tensor, filename_prefix="RandomPicker")
+                return {"ui": preview["ui"], "result": (img_tensor,)}
                 
             except Exception as e:
                 raise ValueError(f"Failed to load image from file picker: {str(e)}")
