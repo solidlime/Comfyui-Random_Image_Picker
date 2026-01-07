@@ -60,7 +60,11 @@ class RandomImagePicker:
             }
         }
     
-    RETURN_TYPES = ("IMAGE", "INT", "INT")
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "load_image"
+    CATEGORY = "image"
+    OUTPUT_NODE = True = ("IMAGE", "INT", "INT")
     RETURN_NAMES = ("IMAGE", "width", "height")
     FUNCTION = "load_image"
     CATEGORY = "image"
@@ -136,7 +140,7 @@ class RandomImagePicker:
             image_data: Base64 encoded image data from file picker (used when folder_mode=False)
             
         Returns:
-            Tuple of (image_tensor, width, height)
+            Tuple of (image_tensor,) with UI info
         """
         if folder_mode:
             # Folder mode: random selection from folder_path
@@ -158,7 +162,14 @@ class RandomImagePicker:
             print(f"[Random Image Picker] Mode: Folder")
             print(f"[Random Image Picker] Folder: {folder_path}")
             print(f"[Random Image Picker] Selected: {selected_image}")
-            return self.load_image_file(selected_image)
+            
+            img_tensor, width, height = self.load_image_file(selected_image)
+            
+            # Return with UI info
+            return {
+                "ui": {"text": [f"📁 Folder Mode | Resolution: {width}x{height} | File: {os.path.basename(selected_image)}"]},
+                "result": (img_tensor,)
+            }
         else:
             # Single file mode: use file picker (image_data)
             if not image_data:
@@ -194,7 +205,12 @@ class RandomImagePicker:
                 
                 print(f"[Random Image Picker] Mode: Single (File Picker)")
                 print(f"[Random Image Picker] Loaded: {width}x{height}")
-                return (img_tensor, width, height)
+                
+                # Return with UI info
+                return {
+                    "ui": {"text": [f"📄 Single Mode | Resolution: {width}x{height}"]},
+                    "result": (img_tensor,)
+                }
                 
             except Exception as e:
                 raise ValueError(f"Failed to load image from file picker: {str(e)}")
