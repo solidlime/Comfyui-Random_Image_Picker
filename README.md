@@ -24,7 +24,7 @@ A ComfyUI custom node that provides flexible image loading with support for both
 1. Navigate to your ComfyUI custom nodes directory:
    ```bash
    cd ComfyUI/custom_nodes
-   git clone https://github.com/YOUR_USERNAME/Comfyui-Random_Image_Picker.git
+   git clone https://github.com/solidlime/Comfyui-Random_Image_Picker.git
    ```
 
 2. Restart ComfyUI
