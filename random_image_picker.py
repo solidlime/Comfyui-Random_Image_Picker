@@ -131,18 +131,23 @@ class RandomImagePicker:
         Load image based on mode settings.
         
         Args:
-            folder_path: Folder path for random selection
-            folder_mode: True for explicit folder mode, False for auto-detect
+            folder_path: Folder path for random selection (used when folder_mode=True)
+            folder_mode: True=Folder random selection, False=File picker
             include_subfolders: Whether to scan subfolders
             seed: Random seed for folder mode
-            image_data: Base64 encoded image data from file picker
+            image_data: Base64 encoded image data from file picker (used when folder_mode=False)
             
         Returns:
             Tuple of (image_tensor, width, height)
         """
-        # Priority 1: Check if folder_path is valid (works for both modes)
-        if folder_path and os.path.exists(folder_path) and os.path.isdir(folder_path):
-            # Use folder mode (random selection)
+        if folder_mode:
+            # Folder mode: random selection from folder_path
+            if not folder_path or not os.path.exists(folder_path):
+                raise ValueError(f"Folder mode is enabled but folder_path is invalid: {folder_path}")
+            
+            if not os.path.isdir(folder_path):
+                raise ValueError(f"Folder mode requires a directory path, not a file: {folder_path}")
+            
             image_files = self.get_image_files(folder_path, include_subfolders)
             
             if not image_files:
@@ -152,14 +157,18 @@ class RandomImagePicker:
             random.seed(seed)
             selected_image = random.choice(image_files)
             
-            mode_str = "Folder Mode" if folder_mode else "Auto (from folder_path)"
-            print(f"[Random Image Picker] Mode: {mode_str}")
+            print(f"[Random Image Picker] Mode: Folder")
             print(f"[Random Image Picker] Folder: {folder_path}")
             print(f"[Random Image Picker] Selected: {selected_image}")
             return self.load_image_file(selected_image)
-        
-        # Priority 2: Use file picker data if available
-        if image_data:
+        else:
+            # Single file mode: use file picker (image_data)
+            if not image_data:
+                raise ValueError(
+                    "Single file mode is enabled but no image selected.\n\n"
+                    "Please use the 📁 Choose File button to select an image."
+                )
+            
             import base64
             import io
             
@@ -185,20 +194,12 @@ class RandomImagePicker:
                 # Convert to torch tensor and add batch dimension
                 img_tensor = torch.from_numpy(img_array)[None,]
                 
-                print(f"[Random Image Picker] Mode: File Picker")
+                print(f"[Random Image Picker] Mode: Single (File Picker)")
                 print(f"[Random Image Picker] Loaded: {width}x{height}")
                 return (img_tensor, width, height)
                 
             except Exception as e:
                 raise ValueError(f"Failed to load image from file picker: {str(e)}")
-        
-        # No valid input provided
-        raise ValueError(
-            "No valid input provided.\n\n"
-            "Please either:\n"
-            "1. Enter a folder path in 'folder_path' field, OR\n"
-            "2. Use the 📁 Choose File button to select an image"
-        )
 
 
 # Node registration

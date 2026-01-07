@@ -13,14 +13,6 @@ app.registerExtension({
                 
                 // Add file picker button
                 node.addWidget("button", "📁 Choose File", null, () => {
-                    const folderModeWidget = node.widgets.find(w => w.name === "folder_mode");
-                    const isFolderMode = folderModeWidget?.value || false;
-                    
-                    if (isFolderMode) {
-                        alert("⚠️ Folder Mode is enabled.\n\nPlease switch to Single mode to use the file picker,\nor enter the folder path in the 'folder_path' field above.");
-                        return;
-                    }
-                    
                     const input = document.createElement("input");
                     input.type = "file";
                     input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/bmp,image/gif";
@@ -28,6 +20,13 @@ app.registerExtension({
                     input.onchange = (e) => {
                         if (e.target.files && e.target.files[0]) {
                             const file = e.target.files[0];
+                            
+                            // Automatically switch to Single mode (folder_mode = False)
+                            const folderModeWidget = node.widgets.find(w => w.name === "folder_mode");
+                            if (folderModeWidget) {
+                                folderModeWidget.value = false;
+                                console.log("[Random Image Picker] Switched to Single mode");
+                            }
                             
                             // Read file as base64
                             const reader = new FileReader();
@@ -41,7 +40,7 @@ app.registerExtension({
                                 }
                                 
                                 console.log(`[Random Image Picker] File loaded: ${file.name} (${(base64Data.length / 1024).toFixed(2)} KB)`);
-                                alert(`✅ Image loaded successfully!\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(2)} KB\n\nYou can now run the workflow.`);
+                                alert(`✅ Image loaded successfully!\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(2)} KB\n\nMode: Automatically switched to Single\n\nYou can now run the workflow.`);
                             };
                             
                             reader.onerror = () => {
