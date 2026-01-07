@@ -11,8 +11,16 @@ app.registerExtension({
                 const result = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
                 const node = this;
                 
-                // Add browse button
+                // Add file picker button
                 node.addWidget("button", "📁 Choose File", null, () => {
+                    const folderModeWidget = node.widgets.find(w => w.name === "folder_mode");
+                    const isFolderMode = folderModeWidget?.value || false;
+                    
+                    if (isFolderMode) {
+                        alert("⚠️ Folder Mode is enabled.\n\nPlease switch to Single mode to use the file picker,\nor enter the folder path in the 'folder_path' field above.");
+                        return;
+                    }
+                    
                     const input = document.createElement("input");
                     input.type = "file";
                     input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/bmp,image/gif";
@@ -20,27 +28,27 @@ app.registerExtension({
                     input.onchange = (e) => {
                         if (e.target.files && e.target.files[0]) {
                             const file = e.target.files[0];
-                            const imageWidget = node.widgets.find(w => w.name === "image");
                             
-                            if (imageWidget) {
-                                // Show selected file name
-                                const fileName = file.name;
-                                console.log("Selected file:", fileName);
+                            // Read file as base64
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                const base64Data = event.target.result;
                                 
-                                // Show dialog with instructions
-                                const currentPath = imageWidget.value || "";
-                                const dialogText = `File selected: ${fileName}\n\n` +
-                                    `⚠️ IMPORTANT:\n` +
-                                    `Due to browser security, the full path cannot be automatically detected.\n\n` +
-                                    `Please copy and paste the FULL PATH to this file in the 'image' field above.\n\n` +
-                                    `Example:\n` +
-                                    `D:\\Images\\${fileName}\n` +
-                                    `or\n` +
-                                    `C:\\Users\\YourName\\Pictures\\${fileName}\n\n` +
-                                    `Current default: ${currentPath || '(not set)'}`;
+                                // Find or create the image_data widget
+                                let imageDataWidget = node.widgets.find(w => w.name === "image_data");
+                                if (imageDataWidget) {
+                                    imageDataWidget.value = base64Data;
+                                }
                                 
-                                alert(dialogText);
-                            }
+                                console.log(`[Random Image Picker] File loaded: ${file.name} (${(base64Data.length / 1024).toFixed(2)} KB)`);
+                                alert(`✅ Image loaded successfully!\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(2)} KB\n\nYou can now run the workflow.`);
+                            };
+                            
+                            reader.onerror = () => {
+                                alert("❌ Failed to read the image file.\n\nPlease try again.");
+                            };
+                            
+                            reader.readAsDataURL(file);
                         }
                     };
                     
