@@ -25,7 +25,6 @@ app.registerExtension({
                             const folderModeWidget = node.widgets.find(w => w.name === "folder_mode");
                             if (folderModeWidget) {
                                 folderModeWidget.value = false;
-                                console.log("[Random Image Picker] Switched to Single mode");
                             }
                             
                             // Read file as base64
@@ -33,18 +32,17 @@ app.registerExtension({
                             reader.onload = (event) => {
                                 const base64Data = event.target.result;
                                 
-                                // Find or create the image_data widget
+                                // Store image_data in node properties
+                                if (!node.properties) {
+                                    node.properties = {};
+                                }
+                                node.properties.image_data = base64Data;
+                                
+                                // Also try to set widget if it exists
                                 let imageDataWidget = node.widgets.find(w => w.name === "image_data");
                                 if (imageDataWidget) {
                                     imageDataWidget.value = base64Data;
                                 }
-                                
-                                console.log(`[Random Image Picker] File loaded: ${file.name} (${(base64Data.length / 1024).toFixed(2)} KB)`);
-                                alert(`✅ Image loaded successfully!\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(2)} KB\n\nMode: Automatically switched to Single\n\nYou can now run the workflow.`);
-                            };
-                            
-                            reader.onerror = () => {
-                                alert("❌ Failed to read the image file.\n\nPlease try again.");
                             };
                             
                             reader.readAsDataURL(file);

@@ -52,12 +52,10 @@ class RandomImagePicker:
                     "max": 0xffffffffffffffff,
                     "tooltip": "Random seed for reproducible selection in Folder mode"
                 }),
-            },
-            "optional": {
                 "image_data": ("STRING", {
                     "default": "",
                     "multiline": True,
-                    "forceInput": True,
+                    "tooltip": "Base64 image data from file picker (auto-filled)"
                 }),
             }
         }
