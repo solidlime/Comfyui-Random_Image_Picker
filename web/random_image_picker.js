@@ -23,10 +23,23 @@ app.registerExtension({
                             const imageWidget = node.widgets.find(w => w.name === "image");
                             
                             if (imageWidget) {
-                                // Update with file name (user needs to provide full path)
-                                imageWidget.value = file.name;
-                                console.log("Selected file:", file.name);
-                                alert(`File selected: ${file.name}\n\nPlease enter the full path to this file in the text field above.`);
+                                // Show selected file name
+                                const fileName = file.name;
+                                console.log("Selected file:", fileName);
+                                
+                                // Show dialog with instructions
+                                const currentPath = imageWidget.value || "";
+                                const dialogText = `File selected: ${fileName}\n\n` +
+                                    `⚠️ IMPORTANT:\n` +
+                                    `Due to browser security, the full path cannot be automatically detected.\n\n` +
+                                    `Please copy and paste the FULL PATH to this file in the 'image' field above.\n\n` +
+                                    `Example:\n` +
+                                    `D:\\Images\\${fileName}\n` +
+                                    `or\n` +
+                                    `C:\\Users\\YourName\\Pictures\\${fileName}\n\n` +
+                                    `Current default: ${currentPath || '(not set)'}`;
+                                
+                                alert(dialogText);
                             }
                         }
                     };

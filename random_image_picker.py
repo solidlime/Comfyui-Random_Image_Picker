@@ -31,21 +31,26 @@ class RandomImagePicker:
                 "image": ("STRING", {
                     "default": default_path, 
                     "multiline": False,
+                    "dynamicPrompts": False,
+                    "tooltip": "Enter full path to image file (Single mode) or folder (Folder mode). Use 📁 button to help select."
                 }),
                 "folder_mode": ("BOOLEAN", {
                     "default": False, 
                     "label_on": "Folder", 
-                    "label_off": "Single"
+                    "label_off": "Single",
+                    "tooltip": "Single: Load specific file | Folder: Random from folder"
                 }),
                 "include_subfolders": ("BOOLEAN", {
                     "default": False, 
                     "label_on": "ON", 
-                    "label_off": "OFF"
+                    "label_off": "OFF",
+                    "tooltip": "Include subfolders when scanning in Folder mode"
                 }),
                 "seed": ("INT", {
                     "default": 0, 
                     "min": 0, 
-                    "max": 0xffffffffffffffff
+                    "max": 0xffffffffffffffff,
+                    "tooltip": "Random seed for reproducible selection in Folder mode"
                 }),
             },
         }
