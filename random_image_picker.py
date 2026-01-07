@@ -20,12 +20,34 @@ class RandomImagePicker:
     
     @classmethod
     def INPUT_TYPES(cls):
+        # Get default input directory from ComfyUI
+        try:
+            default_path = folder_paths.get_input_directory()
+        except:
+            default_path = ""
+        
         return {
             "required": {
-                "path": ("STRING", {"default": "", "multiline": False}),
-                "folder_mode": ("BOOLEAN", {"default": False, "label_on": "Folder", "label_off": "Single"}),
-                "include_subfolders": ("BOOLEAN", {"default": False, "label_on": "ON", "label_off": "OFF"}),
-                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
+                "path": ("STRING", {
+                    "default": default_path, 
+                    "multiline": False,
+                    "placeholder": "Path to image file or folder"
+                }),
+                "folder_mode": ("BOOLEAN", {
+                    "default": False, 
+                    "label_on": "Folder", 
+                    "label_off": "Single"
+                }),
+                "include_subfolders": ("BOOLEAN", {
+                    "default": False, 
+                    "label_on": "ON", 
+                    "label_off": "OFF"
+                }),
+                "seed": ("INT", {
+                    "default": 0, 
+                    "min": 0, 
+                    "max": 0xffffffffffffffff
+                }),
             },
         }
     
@@ -33,6 +55,7 @@ class RandomImagePicker:
     RETURN_NAMES = ("IMAGE", "width", "height")
     FUNCTION = "load_image"
     CATEGORY = "image"
+    OUTPUT_NODE = True
     
     @staticmethod
     def get_image_files(directory: str, include_subfolders: bool = False) -> List[str]:

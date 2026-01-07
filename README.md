@@ -9,6 +9,8 @@ A ComfyUI custom node that provides flexible image loading with support for both
 - **Subfolder Support**: Option to include subfolders in the search
 - **Resolution Output**: Automatically outputs image width and height
 - **Reproducible Random**: Seed control for consistent random selection
+- **🆕 Image Preview**: Real-time preview of loaded images in the UI
+- **🆕 File Browser**: Convenient "Browse..." button for file/folder selection
 
 ## Installation
 
@@ -20,6 +22,16 @@ A ComfyUI custom node that provides flexible image loading with support for both
 
 2. Restart ComfyUI
 
+3. The node will appear in the "image" category as "Random Image Picker"
+
+## Usage Tips
+
+- **Using the Browse Button**: Click "Browse..." to open your system's file/folder selector
+  - Note: Due to browser security limitations, you may need to manually enter the full path
+- **Default Path**: The input field defaults to your ComfyUI input directory
+- **Path Format**: Use forward slashes `/` or double backslashes `\\` on Windows
+- **Preview**: The loaded image automatically appears in the node's preview area
+
 ## Usage
 
 ### Node Inputs
@@ -27,10 +39,13 @@ A ComfyUI custom node that provides flexible image loading with support for both
 - **path** (STRING): 
   - In Single mode: Full path to an image file
   - In Folder mode: Full path to a folder containing images
+  - 🆕 **Browse Button**: Click "Browse..." to select files/folders using your file explorer
+  - Default: ComfyUI input directory
 
 - **folder_mode** (BOOLEAN):
   - `OFF` (Single): Load the specified image file
   - `ON` (Folder): Randomly select an image from the folder
+  - Note: The browse dialog changes based on this setting
 
 - **include_subfolders** (BOOLEAN):
   - `OFF`: Only scan the specified folder
@@ -42,7 +57,7 @@ A ComfyUI custom node that provides flexible image loading with support for both
 
 ### Node Outputs
 
-- **IMAGE**: The loaded image in ComfyUI tensor format
+- **IMAGE**: The loaded image in ComfyUI tensor format (with real-time preview)
 - **width** (INT): Image width in pixels
 - **height** (INT): Image height in pixels
 
@@ -89,6 +104,8 @@ Randomly selects one image from `D:/images/` and all its subfolders
 - Output tensor format: `[batch, height, width, channels]`
 - Pixel values normalized to 0.0-1.0 range
 - Uses PyTorch tensors for ComfyUI compatibility
+- Real-time preview in ComfyUI UI (OUTPUT_NODE enabled)
+- Custom JavaScript widget for enhanced file selection
 
 ## License
 
