@@ -1,0 +1,13 @@
+[project]
+name = "random-image-picker"
+description = "Flexible image loading with support for both single file picker and random folder selection."
+version = "1.0.0"
+license = { file = "LICENSE" }
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/solidlime/Comfyui-Random_Image_Picker"
+
+[tool.comfy]
+PublisherId = "solidlime"
+DisplayName = "Random Image Picker"
