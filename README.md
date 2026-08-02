@@ -125,13 +125,13 @@ seed: 42
 ### Architecture
 - **Python Backend**: Image loading and processing using PIL/Pillow
 - **JavaScript Frontend**: File picker with FileReader API for browser-based file access
-- **Base64 Transfer**: Secure data transfer from browser to ComfyUI backend
+- **Temp Upload**: Image uploaded to ComfyUI temp storage; widget stores a small reference string
 
 ### Browser Limitations
 Due to browser security restrictions, the file picker:
 - Cannot access full file system paths
 - Uses FileReader API to read files directly in browser
-- Transfers image data as base64-encoded strings
+- Uploads the image to ComfyUI temp storage and stores a small reference string (avoids workflow JSON bloat)
 - Works completely client-side until execution
 
 ### Output Format

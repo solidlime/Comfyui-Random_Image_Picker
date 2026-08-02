@@ -28,7 +28,7 @@ app.registerExtension({
                     input.type = "file";
                     input.accept = "image/png,image/jpeg,image/jpg,image/webp,image/bmp,image/gif";
                     
-                    input.onchange = (e) => {
+                    input.onchange = async (e) => {
                         if (e.target.files && e.target.files[0]) {
                             const file = e.target.files[0];
                             
@@ -38,28 +38,41 @@ app.registerExtension({
                                 folderModeWidget.value = false;
                             }
                             
-                            // Read file as base64
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                                const base64Data = event.target.result;
+                            try {
+                                // Upload image to ComfyUI temp storage
+                                const body = new FormData();
+                                body.append('image', file);
+                                body.append('type', 'temp');
                                 
-                                // Store image_data in widget
-                                let imageDataWidget = node.widgets.find(w => w.name === "image_data");
-                                if (imageDataWidget) {
-                                    imageDataWidget.value = base64Data;
+                                const api = app.api;
+                                const fetchFn = api.apiFetch ? api.apiFetch.bind(api) : api.fetchApi.bind(api);
+                                const resp = await fetchFn('/upload/image', { method: 'POST', body });
+                                if (resp.status !== 200) {
+                                    throw new Error(`Upload failed with status ${resp.status}`);
                                 }
                                 
-                                // Show instant preview
+                                const data = await resp.json();
+                                
+                                // Store reference string in widget (not base64)
+                                const path = data.subfolder ? `${data.subfolder}/${data.name}` : data.name;
+                                const ref = `${path} [temp]`;
+                                
+                                let imageDataWidget = node.widgets.find(w => w.name === "image_data");
+                                if (imageDataWidget) {
+                                    imageDataWidget.value = ref;
+                                }
+                                
+                                // Show instant preview from temp storage
                                 const img = new Image();
                                 img.onload = () => {
                                     node.imgs = [img];
                                     node.setSizeForImage?.();
                                     app.graph.setDirtyCanvas(true);
                                 };
-                                img.src = base64Data;
-                            };
-                            
-                            reader.readAsDataURL(file);
+                                img.src = api.apiURL('/view?filename=' + encodeURIComponent(data.name) + '&type=temp&subfolder=' + encodeURIComponent(data.subfolder || ''));
+                            } catch (err) {
+                                console.error("[Random Image Picker] Upload failed:", err);
+                            }
                         }
                     };
                     

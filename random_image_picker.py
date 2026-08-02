@@ -62,7 +62,7 @@ class RandomImagePicker(SaveImage):
                 "image_data": ("STRING", {
                     "default": "",
                     "multiline": True,
-                    "tooltip": "Base64 image data from file picker (auto-filled)"
+                    "tooltip": "Image reference (temp) from file picker (auto-filled)"
                 }),
             }
         }
@@ -179,40 +179,45 @@ class RandomImagePicker(SaveImage):
                     "Please use the 📁 Choose File button to select an image."
                 )
             
-            import base64
-            import io
-            
-            try:
-                # Remove data URL prefix if present
-                if ',' in image_data:
+            if image_data.startswith("data:"):
+                # Backward compatibility: base64 data URL from older versions
+                import base64
+                import io
+                
+                try:
+                    # Remove data URL prefix if present
                     image_data = image_data.split(',', 1)[1]
-                
-                # Decode base64
-                img_bytes = base64.b64decode(image_data)
-                img = Image.open(io.BytesIO(img_bytes))
-                
-                # Convert to RGB if needed
-                if img.mode != 'RGB':
-                    img = img.convert('RGB')
-                
-                # Get dimensions
-                width, height = img.size
-                
-                # Convert to numpy array
-                img_array = np.array(img).astype(np.float32) / 255.0
-                
-                # Convert to torch tensor and add batch dimension
-                img_tensor = torch.from_numpy(img_array)[None,]
-                
-                print(f"[Random Image Picker] Mode: Single (File Picker)")
-                print(f"[Random Image Picker] Resolution: {width}x{height}")
-                
-                # Save for preview and return with image tensor
-                preview = self.save_images(img_tensor, filename_prefix="RandomPicker")
-                return {"ui": preview["ui"], "result": (img_tensor,)}
-                
-            except Exception as e:
-                raise ValueError(f"Failed to load image from file picker: {str(e)}")
+                    
+                    # Decode base64
+                    img_bytes = base64.b64decode(image_data)
+                    img = Image.open(io.BytesIO(img_bytes))
+                    
+                    # Convert to RGB if needed
+                    if img.mode != 'RGB':
+                        img = img.convert('RGB')
+                    
+                    # Get dimensions
+                    width, height = img.size
+                    
+                    # Convert to numpy array
+                    img_array = np.array(img).astype(np.float32) / 255.0
+                    
+                    # Convert to torch tensor and add batch dimension
+                    img_tensor = torch.from_numpy(img_array)[None,]
+                    
+                except Exception as e:
+                    raise ValueError(f"Failed to load image from file picker: {str(e)}")
+            else:
+                # New path: resolve temp image reference (e.g. "name.png [temp]")
+                image_path = folder_paths.get_annotated_filepath(image_data)
+                img_tensor, width, height = self.load_image_file(image_path)
+            
+            print(f"[Random Image Picker] Mode: Single (File Picker)")
+            print(f"[Random Image Picker] Resolution: {width}x{height}")
+            
+            # Save for preview and return with image tensor
+            preview = self.save_images(img_tensor, filename_prefix="RandomPicker")
+            return {"ui": preview["ui"], "result": (img_tensor,)}
 
 
 # Node registration
